@@ -38,6 +38,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate branch name
+        run: ./scripts/validate-branch-name.sh "${{ github.head_ref || github.ref_name }}"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:

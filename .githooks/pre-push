@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+# Validate branch name pattern (main and dev are exceptions)
+"$ROOT_DIR/scripts/validate-branch-name.sh"

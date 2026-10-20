@@ -56,8 +56,7 @@ Small retailers may experience difficulties maintaining accurate stock and sales
 Stokari aims to reduce these problems by providing persistent local storage, explicit synchronization status, and controlled reconciliation of conflicting records.
 
 The problem statement is based on secondary research and has not yet been validated through a completed primary-research study.
-
-## 1.3 Project Objectives
+oject Objectives
 
 Stokari shall:
 
@@ -77,6 +76,7 @@ Stokari shall:
 - Owner and attendant roles.
 - Product creation, editing, deactivation, and search.
 - Sales and payment-method labels.
+## 1.3 Pr
 - Stock receipts and adjustments.
 - Append-only stock movement history.
 - Offline data persistence.
@@ -102,20 +102,20 @@ Stokari shall:
 
 ## 1.5 Definitions
 
-| Term | Definition |
-|---|---|
-| Owner | The user with authority over shop settings, staff, stock adjustments, and conflict resolution. |
-| Attendant | An authorized user who can perform permitted operational tasks, including recording sales. |
-| Platform administrator | A platform-level operator who manages platform administration, not ordinary shop transactions. |
-| Server-confirmed stock | Stock calculated from stock-affecting events accepted by the server. |
-| Local projected stock | A device's locally calculated stock after applying eligible local operations, including pending transactions. |
-| Pending operation | A locally persisted operation that has not received definitive server acceptance. |
-| Stock movement | An auditable event that changes stock, such as a receipt, sale, cancellation, or adjustment. |
-| Conflict | A condition in which concurrent or stale operations cannot be reconciled safely without additional review. |
-| Idempotency key | A unique identifier that prevents a retried operation from being applied more than once. |
+| Term                        | Definition                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Owner                       | The user with authority over shop settings, staff, stock adjustments, and conflict resolution.                                  |
+| Attendant                   | An authorized user who can perform permitted operational tasks, including recording sales.                                      |
+| Platform administrator      | A platform-level operator who manages platform administration, not ordinary shop transactions.                                  |
+| Server-confirmed stock      | Stock calculated from stock-affecting events accepted by the server.                                                            |
+| Local projected stock       | A device's locally calculated stock after applying eligible local operations, including pending transactions.                   |
+| Pending operation           | A locally persisted operation that has not received definitive server acceptance.                                               |
+| Stock movement              | An auditable event that changes stock, such as a receipt, sale, cancellation, or adjustment.                                    |
+| Conflict                    | A condition in which concurrent or stale operations cannot be reconciled safely without additional review.                      |
+| Idempotency key             | A unique identifier that prevents a retried operation from being applied more than once.                                        |
 | Offline authorization lease | A time-limited server-issued authorization allowing a previously authenticated device to continue specified operations offline. |
-| RPO | Recovery Point Objective: the maximum targeted amount of data loss after a server disaster. |
-| RTO | Recovery Time Objective: the target time to restore service after a server disaster. |
+| RPO                         | Recovery Point Objective: the maximum targeted amount of data loss after a server disaster.                                     |
+| RTO                         | Recovery Time Objective: the target time to restore service after a server disaster.                                            |
 
 ---
 
@@ -977,18 +977,18 @@ The team shall check relevant naming and domain availability before public relea
 
 # 12. Risks and Limitations
 
-| Risk | Mitigation |
-|---|---|
-| Concurrent offline sales create overselling | Preserve transactions, detect discrepancies, and require explicit owner reconciliation. |
-| Network timeout after server commit | Use idempotency keys and durable operation outcomes. |
-| Browser storage is cleared or device is lost | Warn about pending records and provide export where feasible; do not promise recovery of unsynchronized data. |
-| Attendant is deactivated while offline | Use limited offline leases, validate records on synchronization, and communicate revocation limitations. |
-| Stale product information is used offline | Preserve completed business events and evaluate them using explicit conflict rules. |
-| Team exceeds the schedule | Defer Should and Could features without silently removing Must requirements. |
-| Google authentication excludes intended users | Validate with target users before release and revise the requirements if necessary. |
-| Backup jobs succeed but data cannot be restored | Perform a documented restore test. |
-| Dashboard appears authoritative despite pending changes | Separate server-confirmed figures from local projections and display review status. |
-| Client and server calculations differ | Share and test numeric precision, rounding, and validation rules. |
+| Risk                                                    | Mitigation                                                                                                    |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Concurrent offline sales create overselling             | Preserve transactions, detect discrepancies, and require explicit owner reconciliation.                       |
+| Network timeout after server commit                     | Use idempotency keys and durable operation outcomes.                                                          |
+| Browser storage is cleared or device is lost            | Warn about pending records and provide export where feasible; do not promise recovery of unsynchronized data. |
+| Attendant is deactivated while offline                  | Use limited offline leases, validate records on synchronization, and communicate revocation limitations.      |
+| Stale product information is used offline               | Preserve completed business events and evaluate them using explicit conflict rules.                           |
+| Team exceeds the schedule                               | Defer Should and Could features without silently removing Must requirements.                                  |
+| Google authentication excludes intended users           | Validate with target users before release and revise the requirements if necessary.                           |
+| Backup jobs succeed but data cannot be restored         | Perform a documented restore test.                                                                            |
+| Dashboard appears authoritative despite pending changes | Separate server-confirmed figures from local projections and display review status.                           |
+| Client and server calculations differ                   | Share and test numeric precision, rounding, and validation rules.                                             |
 
 ---
 

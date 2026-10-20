@@ -1,0 +1,17 @@
+from typing import NewType
+
+ShopId = NewType("ShopId", int)
+OpId = NewType("OpId", str)
+ProductId = NewType("ProductId", int)
+StockChangeId = NewType("StockChangeId", int)
+MembershipId = NewType("MembershipId", int)
+UserId = NewType("UserId", int)
+InviteId = NewType("InviteId", str)
+OfflineLeaseId = NewType("OfflineLeaseId", int)
+RefreshTokenId = NewType("RefreshTokenId", str)
+DeviceId = NewType("DeviceId", str)
+CategoryId = NewType("CategoryId", int)
+SaleId = NewType("SaleId", int)
+SaleLineId = NewType("SaleLineId", int)
+CountSessionId = NewType("CountSessionId", int)
+ConflictCaseId = NewType("ConflictCaseId", int)

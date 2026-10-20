@@ -1,0 +1,10 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Stokari API",
+    "version": "1.0.0",
+    "description": "Backend API documentation for Stokari inventory & user management"
+  },
+  "paths": {},
+  "components": {}
+}

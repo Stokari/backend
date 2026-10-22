@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # our apps
+    "apps.identity.apps.IdentityConfig",
+    "apps.shops.apps.ShopsConfig",
     "users.apps.UsersConfig",
     "inventory.apps.InventoryConfig",
     # libraries
@@ -55,6 +57,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "django_filters",
+    "django.contrib.postgres",
 ]
 
 MIDDLEWARE = [

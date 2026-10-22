@@ -5,70 +5,125 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('identity', '0001_initial'),
+        ("identity", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Shop',
+            name="Shop",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('name', models.TextField()),
-                ('status', models.CharField(choices=[('ACTIVE', 'Active'), ('CLOSED', 'Closed')], default='ACTIVE', max_length=10)),
-                ('sync_seq', models.BigIntegerField(default=0)),
-                ('attendant_limit', models.PositiveSmallIntegerField(default=5)),
-                ('closed_at', models.DateTimeField(null=True)),
-                ('retain_until', models.DateTimeField(null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                ("name", models.TextField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("ACTIVE", "Active"), ("CLOSED", "Closed")],
+                        default="ACTIVE",
+                        max_length=10,
+                    ),
+                ),
+                ("sync_seq", models.BigIntegerField(default=0)),
+                ("attendant_limit", models.PositiveSmallIntegerField(default=5)),
+                ("closed_at", models.DateTimeField(null=True)),
+                ("retain_until", models.DateTimeField(null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'shop',
+                "db_table": "shop",
             },
         ),
         migrations.CreateModel(
-            name='Invite',
+            name="Invite",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('token_hash', models.CharField(max_length=64, unique=True)),
-                ('expires_at', models.DateTimeField()),
-                ('accepted_at', models.DateTimeField(null=True)),
-                ('shop', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='invites', to='shops.shop')),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                ("token_hash", models.CharField(max_length=64, unique=True)),
+                ("expires_at", models.DateTimeField()),
+                ("accepted_at", models.DateTimeField(null=True)),
+                (
+                    "shop",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="invites",
+                        to="shops.shop",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'invite',
+                "db_table": "invite",
             },
         ),
         migrations.CreateModel(
-            name='Device',
+            name="Device",
             fields=[
-                ('id', models.UUIDField()),
-                ('pk', models.CompositePrimaryKey('shop', 'id', blank=True, editable=False, primary_key=True, serialize=False)),
-                ('user_id', models.UUIDField()),
-                ('last_seen_at', models.DateTimeField()),
-                ('shop', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='devices', to='shops.shop')),
+                ("id", models.UUIDField()),
+                (
+                    "pk",
+                    models.CompositePrimaryKey(
+                        "shop", "id", blank=True, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("user_id", models.UUIDField()),
+                ("last_seen_at", models.DateTimeField()),
+                (
+                    "shop",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="devices",
+                        to="shops.shop",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'device',
+                "db_table": "device",
             },
         ),
         migrations.CreateModel(
-            name='Membership',
+            name="Membership",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('role', models.CharField(choices=[('OWNER', 'Owner'), ('ATTENDANT', 'Attendant')], max_length=10)),
-                ('status', models.CharField(choices=[('ACTIVE', 'Active'), ('DEACTIVATED', 'Deactivated')], default='ACTIVE', max_length=12)),
-                ('deactivated_at', models.DateTimeField(null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='memberships', to='identity.user')),
-                ('shop', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='memberships', to='shops.shop')),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[("OWNER", "Owner"), ("ATTENDANT", "Attendant")], max_length=10
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("ACTIVE", "Active"), ("DEACTIVATED", "Deactivated")],
+                        default="ACTIVE",
+                        max_length=12,
+                    ),
+                ),
+                ("deactivated_at", models.DateTimeField(null=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="memberships",
+                        to="identity.user",
+                    ),
+                ),
+                (
+                    "shop",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="memberships",
+                        to="shops.shop",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'membership',
-                'indexes': [models.Index(fields=['user', 'status'], name='membership_user_id_e06d3e_idx')],
-                'constraints': [models.UniqueConstraint(fields=('shop', 'user'), name='uq_membership_shop_user')],
+                "db_table": "membership",
+                "indexes": [
+                    models.Index(fields=["user", "status"], name="membership_user_id_e06d3e_idx")
+                ],
+                "constraints": [
+                    models.UniqueConstraint(fields=("shop", "user"), name="uq_membership_shop_user")
+                ],
             },
         ),
     ]

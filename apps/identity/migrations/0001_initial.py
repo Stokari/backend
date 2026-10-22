@@ -5,52 +5,55 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='OfflineLease',
+            name="OfflineLease",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('device_id', models.UUIDField()),
-                ('allowed_ops', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=40))),
-                ('issued_at', models.DateTimeField()),
-                ('expires_at', models.DateTimeField()),
-                ('revoked_at', models.DateTimeField(null=True)),
-                ('renewed_from', models.UUIDField(null=True)),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                ("device_id", models.UUIDField()),
+                (
+                    "allowed_ops",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.CharField(max_length=40)
+                    ),
+                ),
+                ("issued_at", models.DateTimeField()),
+                ("expires_at", models.DateTimeField()),
+                ("revoked_at", models.DateTimeField(null=True)),
+                ("renewed_from", models.UUIDField(null=True)),
             ],
             options={
-                'db_table': 'offline_lease',
+                "db_table": "offline_lease",
             },
         ),
         migrations.CreateModel(
-            name='RefreshToken',
+            name="RefreshToken",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('device_id', models.UUIDField()),
-                ('hash', models.CharField(max_length=64, unique=True)),
-                ('family_id', models.UUIDField()),
-                ('expires_at', models.DateTimeField()),
-                ('revoked_at', models.DateTimeField(null=True)),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                ("device_id", models.UUIDField()),
+                ("hash", models.CharField(max_length=64, unique=True)),
+                ("family_id", models.UUIDField()),
+                ("expires_at", models.DateTimeField()),
+                ("revoked_at", models.DateTimeField(null=True)),
             ],
             options={
-                'db_table': 'refresh_token',
+                "db_table": "refresh_token",
             },
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('google_sub', models.TextField(unique=True)),
-                ('email', models.TextField()),
-                ('name', models.TextField()),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                ("google_sub", models.TextField(unique=True)),
+                ("email", models.TextField()),
+                ("name", models.TextField()),
             ],
             options={
-                'db_table': 'app_user',
+                "db_table": "app_user",
             },
         ),
     ]

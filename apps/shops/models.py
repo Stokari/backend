@@ -56,7 +56,11 @@ class Membership(models.Model):
             models.UniqueConstraint(
                 fields=["shop", "user"],
                 name="uq_membership_shop_user",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["shop", "id"],
+                name="uq_membership_shop_id",
+            ),
         ]
         indexes = [models.Index(fields=["user", "status"])]
 

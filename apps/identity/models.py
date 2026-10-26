@@ -14,6 +14,14 @@ class User(models.Model):
     class Meta:
         db_table = "app_user"
 
+    @property
+    def is_authenticated(self) -> bool:
+        return True
+
+    @property
+    def is_anonymous(self) -> bool:
+        return False
+
 
 class OfflineLease(models.Model):
     id = models.UUIDField(primary_key=True)

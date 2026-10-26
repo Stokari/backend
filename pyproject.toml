@@ -37,8 +37,9 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-django_settings_module = "backend.settings"
-testpaths = ["common", "apps", "backend"]
+django_settings_module = "config.settings"
+testpaths = ["common", "apps", "config"]
+
 
 [tool.uv.sources]
 backend = { path = ".", editable = true }

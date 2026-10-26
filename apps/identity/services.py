@@ -1,7 +1,5 @@
 """Domain services for Stokari identity, Google authentication, and token lifecycle."""
 
-from __future__ import annotations
-
 import hashlib
 import secrets
 import uuid

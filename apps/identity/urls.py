@@ -1,7 +1,5 @@
 """URL routing for identity and authentication endpoints."""
 
-from __future__ import annotations
-
 from django.urls import path
 
 from apps.identity.views import (

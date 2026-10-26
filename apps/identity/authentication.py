@@ -1,7 +1,5 @@
 """Stokari JWT Authentication class for Django REST Framework."""
 
-from __future__ import annotations
-
 import jwt
 from django.conf import settings
 from rest_framework import exceptions

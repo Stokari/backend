@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from common.kernel.clock import Clock, FixedClock, SystemClock, get_clock, set_clock
+from common.core.clock import Clock, FixedClock, SystemClock, get_clock, set_clock
 
 
 class TestSystemClock:

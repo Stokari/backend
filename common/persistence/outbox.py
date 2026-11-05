@@ -1,9 +1,7 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import datetime
 
-from common.kernel.types import OpId, ShopId
+from common.core.types import OpId, ShopId
 
 
 @dataclass(frozen=True, slots=True)

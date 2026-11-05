@@ -2,6 +2,7 @@
 
 import jwt
 from django.conf import settings
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.request import Request
@@ -55,18 +56,13 @@ class StokariJWTAuthentication(BaseAuthentication):
         return user, payload
 
 
-try:
-    from drf_spectacular.extensions import OpenApiAuthenticationExtension
+class StokariJWTAuthenticationExtension(OpenApiAuthenticationExtension):
+    target_class = "apps.identity.authentication.StokariJWTAuthentication"
+    name = "bearerAuth"
 
-    class StokariJWTAuthenticationExtension(OpenApiAuthenticationExtension):
-        target_class = "apps.identity.authentication.StokariJWTAuthentication"
-        name = "bearerAuth"
-
-        def get_security_definition(self, auto_schema: object) -> dict[str, str]:
-            return {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT",
-            }
-except ImportError:
-    pass
+    def get_security_definition(self, auto_schema: object) -> dict[str, str]:
+        return {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }

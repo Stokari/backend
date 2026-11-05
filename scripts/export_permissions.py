@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """Export permissions to contract/fixtures/permissions.json"""
 
-from __future__ import annotations
-
 import json
 import os
 import sys

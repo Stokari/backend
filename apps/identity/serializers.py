@@ -3,25 +3,22 @@
 from rest_framework import serializers
 
 
-class NonceResponseSerializer(serializers.Serializer):
-    nonce = serializers.CharField(help_text="One-time nonce for Google sign-in")
-    expiresAt = serializers.DateTimeField(help_text="Expiration timestamp (ISO-8601)")
-
-
-class GoogleSignInRequestSerializer(serializers.Serializer):
-    idToken = serializers.CharField(required=True, help_text="Google ID token (JWT)")
-    nonce = serializers.CharField(required=True, help_text="Nonce previously returned by E-02")
-    deviceId = serializers.UUIDField(required=True, help_text="Client device ID (UUIDv7)")
-    membershipId = serializers.UUIDField(
-        required=False,
-        allow_null=True,
-        help_text="Optional target membership ID when multiple shops exist",
-    )
-
-
 class RefreshRequestSerializer(serializers.Serializer):
     refreshToken = serializers.CharField(required=True, help_text="Opaque refresh token")
     deviceId = serializers.UUIDField(required=True, help_text="Client device ID")
+
+
+class ExchangeAuthCodeRequestSerializer(serializers.Serializer):
+    code = serializers.CharField(
+        required=True,
+        help_text="One-time handoff code from OAuth callback",
+    )
+    deviceId = serializers.UUIDField(required=True, help_text="Client device ID")
+    membershipId = serializers.UUIDField(
+        required=False,
+        allow_null=True,
+        help_text="Optional shop membership selection",
+    )
 
 
 class LeaseRenewRequestSerializer(serializers.Serializer):

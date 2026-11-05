@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any
 
@@ -9,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
 
-from common.kernel.errors import ERROR_CODES, DomainError
+from common.core.errors import ERROR_CODES, DomainError
 
 
 @dataclass(frozen=True, slots=True)

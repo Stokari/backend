@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 from typing import TypeVar
 
 from django.db import models
 
-from common.kernel.types import ShopId
+from common.core.types import ShopId
 from common.persistence.manager import ShopScopedQuerySet
 
 T = TypeVar("T", bound=models.Model)

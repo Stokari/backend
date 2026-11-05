@@ -1,15 +1,15 @@
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
+from common.core.errors import (
+    NotFoundError,
+    ValidationError,
+)
 from common.http.errors import (
     ProblemDetail,
     ProblemDetailException,
     domain_error_to_problem_detail,
     exception_handler,
-)
-from common.kernel.errors import (
-    NotFoundError,
-    ValidationError,
 )
 
 

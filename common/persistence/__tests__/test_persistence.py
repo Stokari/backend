@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from django.db import models
 from django.db.models import Model
 
-from common.kernel.types import ShopId
+from common.core.types import ShopId
 from common.persistence.manager import ShopScopedQuerySet, ShopScopedRepository, TransactionManager
 from common.persistence.repository import ShopScopedManager, ShopScopedModel
 

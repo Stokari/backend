@@ -1,12 +1,10 @@
-from __future__ import annotations
-
 from contextlib import contextmanager
 from typing import Any, Callable, Generic, TypeVar
 
 from django.db import transaction
 from django.db.models import Model, QuerySet
 
-from common.kernel.types import ShopId
+from common.core.types import ShopId
 
 T = TypeVar("T", bound=Model)
 

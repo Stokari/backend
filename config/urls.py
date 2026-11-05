@@ -8,8 +8,15 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from apps.identity.views import CurrentUserView, ExchangeAuthCodeView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Stokari custom auth bridge & current user
+    path("api/auth/exchange", ExchangeAuthCodeView.as_view(), name="exchange_code"),
+    path("api/me", CurrentUserView.as_view(), name="current_user"),
+    # django-auth-headless (allauth headless, social callback, /api/me fallback)
+    path("", include("django_auth_headless.urls")),
     # Authentication & Identity
     path("v1/auth/", include("apps.identity.urls")),
     # OpenAPI 3 Schema & Interactive Documentation

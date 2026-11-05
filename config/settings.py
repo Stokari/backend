@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django_auth_headless import conf as auth_conf
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -10,14 +11,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 load_dotenv(BASE_DIR / ".env")
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
 
 ALLOWED_HOSTS = [
@@ -26,8 +21,6 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-# CORS configuration
-# https://github.com/adamchainz/django-cors-headers
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
@@ -36,9 +29,19 @@ CORS_ALLOWED_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
+CORS_ALLOW_CREDENTIALS = True
 
-
-# Application definition
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        os.getenv(
+            "DJANGO_CSRF_TRUSTED_ORIGINS",
+            "http://localhost:5173,http://127.0.0.1:5173",
+        ),
+    ).split(",")
+    if origin.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -47,11 +50,22 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     # our apps
     "apps.identity.apps.IdentityConfig",
     "apps.shops.apps.ShopsConfig",
     "users.apps.UsersConfig",
     "inventory.apps.InventoryConfig",
+    # allauth & django-auth-headless
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.github",
+    "allauth.socialaccount.providers.gitlab",
+    "allauth.socialaccount.providers.microsoft",
+    "allauth.headless",
+    "django_auth_headless",
     # libraries
     "rest_framework",
     "corsheaders",
@@ -67,11 +81,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
+
 
 TEMPLATES = [
     {
@@ -91,16 +107,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-
 DATABASES = {
     "default": dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=600),
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -117,10 +127,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.1/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -129,19 +135,12 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.1/howto/static-files/
-
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-
-# Django REST Framework
-# https://www.django-rest-framework.org/
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -180,3 +179,33 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+
+# django-allauth & django-auth-headless
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SITE_ID = 1
+
+SOCIALACCOUNT_ADAPTER = "django_auth_headless.adapters.AuthenticationSocialAccountAdapter"
+HEADLESS_ONLY = True
+
+DJANGO_AUTH_MODE = os.getenv("DJANGO_AUTH_MODE", "cross-domain")
+DJANGO_AUTH_FRONTEND_URL = os.getenv("DJANGO_FRONTEND_URL", "http://localhost:5173").rstrip("/")
+DJANGO_ACCESS_TOKEN_LIFETIME_SECONDS = int(
+    os.getenv("DJANGO_ACCESS_TOKEN_LIFETIME_SECONDS", "3600")
+)
+FRONTEND_URL = DJANGO_AUTH_FRONTEND_URL
+LOGIN_REDIRECT_URL = "/api/auth/callback"
+
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": f"{FRONTEND_URL}/account/confirm-email/{{key}}",
+    "account_reset_password": f"{FRONTEND_URL}/account/password/reset",
+    "account_reset_password_from_key": f"{FRONTEND_URL}/account/password/reset/key/{{key}}",
+    "account_signup": f"{FRONTEND_URL}/account/signup",
+    "socialaccount_login_error": f"{FRONTEND_URL}/account/social/login/error",
+}
+
+SOCIALACCOUNT_PROVIDERS = auth_conf.SOCIALACCOUNT_PROVIDERS

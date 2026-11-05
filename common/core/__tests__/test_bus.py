@@ -1,4 +1,4 @@
-from common.kernel.bus import EventBus, get_event_bus, set_event_bus
+from common.core.bus import EventBus, get_event_bus, set_event_bus
 
 
 class SampleEvent:

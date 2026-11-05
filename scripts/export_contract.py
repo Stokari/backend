@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """Export OpenAPI contract and generate TypeScript types"""
 
-from __future__ import annotations
-
 import json
 import os
 import subprocess

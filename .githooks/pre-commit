@@ -4,4 +4,4 @@ set -euo pipefail
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "$ROOT_DIR"
 
-exec uv run pre-commit run --hook-stage pre-commit --files "$@"
+exec uv run --extra dev python -m pre_commit run --hook-stage pre-commit --files "$@"

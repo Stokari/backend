@@ -6,11 +6,11 @@
     "description": "Backend API documentation for Stokari inventory & user management"
   },
   "paths": {
-    "/v1/auth/google": {
+    "/api/auth/exchange": {
       "post": {
-        "operationId": "v1_auth_google_create",
-        "description": "Validates Google ID token and nonce, retrieves or provisions User, and returns an AuthSession with access token, refresh token, and offline lease.",
-        "summary": "Exchange Google ID token for Stokari session",
+        "operationId": "api_auth_exchange_create",
+        "description": "Redeems a single-use authorization code from the OAuth callback, provisions or matches the Stokari user, and returns an AuthSession with access JWT, refresh token, and offline lease.",
+        "summary": "Exchange OAuth handoff code for Stokari session",
         "tags": [
           "auth"
         ],
@@ -18,17 +18,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GoogleSignInRequest"
+                "$ref": "#/components/schemas/ExchangeAuthCodeRequest"
               }
             },
             "application/x-www-form-urlencoded": {
               "schema": {
-                "$ref": "#/components/schemas/GoogleSignInRequest"
+                "$ref": "#/components/schemas/ExchangeAuthCodeRequest"
               }
             },
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/GoogleSignInRequest"
+                "$ref": "#/components/schemas/ExchangeAuthCodeRequest"
               }
             }
           },
@@ -40,6 +40,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthSession"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
                 }
               }
             },
@@ -66,6 +76,90 @@
             "description": ""
           },
           "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "operationId": "api_me_retrieve",
+        "description": "Returns identity and active tenant context for the authenticated caller.",
+        "summary": "Get current user and session",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "session": {
+                          "type": "object",
+                          "properties": {
+                            "shopId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "membershipId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "role": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "deviceId": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
             "content": {
               "application/json": {
                 "schema": {
@@ -180,28 +274,6 @@
         }
       }
     },
-    "/v1/auth/nonce": {
-      "get": {
-        "operationId": "v1_auth_nonce_retrieve",
-        "description": "Returns a cryptographically random single-use nonce valid for 5 minutes.",
-        "summary": "Get one-time sign-in nonce",
-        "tags": [
-          "auth"
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NonceResponse"
-                }
-              }
-            },
-            "description": ""
-          }
-        }
-      }
-    },
     "/v1/auth/refresh": {
       "post": {
         "operationId": "v1_auth_refresh_create",
@@ -310,33 +382,28 @@
           "session"
         ]
       },
-      "GoogleSignInRequest": {
+      "ExchangeAuthCodeRequest": {
         "type": "object",
         "properties": {
-          "idToken": {
+          "code": {
             "type": "string",
-            "description": "Google ID token (JWT)"
-          },
-          "nonce": {
-            "type": "string",
-            "description": "Nonce previously returned by E-02"
+            "description": "One-time handoff code from OAuth callback"
           },
           "deviceId": {
             "type": "string",
             "format": "uuid",
-            "description": "Client device ID (UUIDv7)"
+            "description": "Client device ID"
           },
           "membershipId": {
             "type": "string",
             "format": "uuid",
             "nullable": true,
-            "description": "Optional target membership ID when multiple shops exist"
+            "description": "Optional shop membership selection"
           }
         },
         "required": [
-          "deviceId",
-          "idToken",
-          "nonce"
+          "code",
+          "deviceId"
         ]
       },
       "LeaseInfo": {
@@ -436,24 +503,6 @@
           "role",
           "shopId",
           "shopName"
-        ]
-      },
-      "NonceResponse": {
-        "type": "object",
-        "properties": {
-          "nonce": {
-            "type": "string",
-            "description": "One-time nonce for Google sign-in"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Expiration timestamp (ISO-8601)"
-          }
-        },
-        "required": [
-          "expiresAt",
-          "nonce"
         ]
       },
       "ProblemDetail": {

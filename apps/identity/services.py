@@ -1,4 +1,4 @@
-"""Domain services for Stokari identity, Google authentication, and token lifecycle."""
+"""Domain services for Stokari identity and token lifecycle."""
 
 import hashlib
 import secrets
@@ -8,16 +8,13 @@ from typing import Any
 
 import jwt
 from django.conf import settings
-from django.core.cache import cache
 from django.utils import timezone
 
 from apps.identity.models import OfflineLease, RefreshToken, User
 from apps.shops.models import Device, Membership, MembershipRole, MembershipStatus, Shop
-from common.kernel.errors import (
+from common.core.errors import (
     AccountDeactivatedError,
-    GoogleTokenInvalidError,
     MembershipSelectionRequiredError,
-    NonceInvalidError,
     RefreshTokenInvalidError,
     RefreshTokenReusedError,
     ShopRequiredError,
@@ -37,79 +34,6 @@ OWNER_ALLOWED_OPS: list[str] = [
 ATTENDANT_ALLOWED_OPS: list[str] = [
     "RecordSale",
 ]
-
-NONCE_PREFIX = "auth_nonce:"
-NONCE_EXPIRY_SECONDS = 300  # 5 minutes
-
-
-def generate_nonce() -> dict[str, str]:
-    """Generate a single-use cryptographically secure nonce for Google sign-in."""
-    nonce = f"n_{secrets.token_hex(16)}"
-    expires_at = timezone.now() + timedelta(seconds=NONCE_EXPIRY_SECONDS)
-    cache.set(f"{NONCE_PREFIX}{nonce}", expires_at.isoformat(), timeout=NONCE_EXPIRY_SECONDS)
-    return {"nonce": nonce, "expiresAt": expires_at.isoformat()}
-
-
-def verify_and_consume_nonce(nonce: str) -> bool:
-    """Verify that a nonce exists and consume it (single-use)."""
-    if not nonce:
-        return False
-    key = f"{NONCE_PREFIX}{nonce}"
-    stored = cache.get(key)
-    if not stored:
-        return False
-    cache.delete(key)
-    return True
-
-
-def verify_google_id_token(id_token_str: str, expected_nonce: str | None = None) -> dict[str, str]:
-    """Verify Google ID token and return claims dict.
-
-    Verifies signature, audience, issuer, expiration, email_verified, and nonce.
-    Supports a mock token in development/testing.
-    """
-    if not id_token_str:
-        raise GoogleTokenInvalidError("ID token must not be empty")
-
-    client_id = getattr(settings, "GOOGLE_CLIENT_ID", "")
-
-    # Test/mock bypass when using mock tokens
-    if id_token_str.startswith("mock-google-token:"):
-        parts = id_token_str.split(":")
-        sub = parts[1] if len(parts) > 1 else "google-mock-sub-123"
-        email = parts[2] if len(parts) > 2 else "user@example.com"
-        name = parts[3] if len(parts) > 3 else "Mock User"
-        return {"sub": sub, "email": email, "name": name}
-
-    try:
-        from google.auth.transport import requests
-        from google.oauth2 import id_token
-
-        request = requests.Request()
-        id_info = id_token.verify_oauth2_token(id_token_str, request, client_id or None)
-
-        if id_info.get("iss") not in ["accounts.google.com", "https://accounts.google.com"]:
-            raise GoogleTokenInvalidError("Invalid token issuer")
-
-        if not id_info.get("email_verified", False):
-            raise GoogleTokenInvalidError("Email is not verified by Google")
-
-        if expected_nonce and id_info.get("nonce") and id_info.get("nonce") != expected_nonce:
-            raise GoogleTokenInvalidError("Token nonce does not match expected nonce")
-
-        sub = id_info.get("sub")
-        email = id_info.get("email")
-        name = id_info.get("name") or (email.split("@")[0] if email else "User")
-
-        if not sub or not email:
-            raise GoogleTokenInvalidError("Missing sub or email in Google token claims")
-
-        return {"sub": sub, "email": email, "name": name}
-
-    except Exception as exc:
-        if isinstance(exc, GoogleTokenInvalidError):
-            raise
-        raise GoogleTokenInvalidError(f"Google ID token verification failed: {exc}") from exc
 
 
 def create_access_token(
@@ -227,34 +151,12 @@ def create_offline_lease(
     return lease_info, lease_record
 
 
-def authenticate_google(
-    id_token: str,
-    nonce: str,
+def create_user_session(
+    user: User,
     device_id: uuid.UUID,
     membership_id: uuid.UUID | None = None,
 ) -> dict[str, Any]:
-    """Exchange Google ID token and verified nonce for a Stokari AuthSession."""
-    if not verify_and_consume_nonce(nonce):
-        raise NonceInvalidError()
-
-    claims = verify_google_id_token(id_token, expected_nonce=nonce)
-
-    user_id = uuid.uuid7() if hasattr(uuid, "uuid7") else uuid.uuid4()
-    user, created = User.objects.get_or_create(
-        google_sub=claims["sub"],
-        defaults={"id": user_id, "email": claims["email"], "name": claims["name"]},
-    )
-
-    if not created:
-        updated = False
-        if user.email != claims["email"]:
-            user.email = claims["email"]
-            updated = True
-        if claims["name"] and user.name != claims["name"]:
-            user.name = claims["name"]
-            updated = True
-        if updated:
-            user.save(update_fields=["email", "name"])
+    """Create a Stokari AuthSession for a user and device with offline lease."""
 
     memberships = list(user.memberships.select_related("shop").all())
     active_memberships = [m for m in memberships if m.status == MembershipStatus.ACTIVE]

@@ -1,6 +1,6 @@
 import pytest
 
-from common.kernel.errors import (
+from common.core.errors import (
     ERROR_CODES,
     ConflictError,
     DomainError,
@@ -11,7 +11,7 @@ from common.kernel.errors import (
     UnauthorizedError,
     ValidationError,
 )
-from common.kernel.result import Result, err, from_bool, from_optional, ok
+from common.core.result import Result, err, from_bool, from_optional, ok
 
 
 class TestResult:

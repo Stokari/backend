@@ -1,7 +1,5 @@
 """Views for authentication endpoints."""
 
-from __future__ import annotations
-
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,78 +8,21 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.identity.authentication import StokariJWTAuthentication
+from apps.identity.exchange import exchange_code_for_session
 from apps.identity.serializers import (
     AuthSessionSerializer,
-    GoogleSignInRequestSerializer,
+    ExchangeAuthCodeRequestSerializer,
     LeaseRenewRequestSerializer,
     LeaseRenewResponseSerializer,
     LogoutRequestSerializer,
-    NonceResponseSerializer,
     ProblemDetailSerializer,
     RefreshRequestSerializer,
 )
 from apps.identity.services import (
-    authenticate_google,
-    generate_nonce,
     renew_offline_lease,
     revoke_refresh_token,
     rotate_refresh_token,
 )
-
-
-class NonceView(APIView):
-    """E-02: Issue a one-time single-use nonce for Google sign-in."""
-
-    authentication_classes = []
-    permission_classes = [AllowAny]
-
-    @extend_schema(
-        summary="Get one-time sign-in nonce",
-        description="Returns a cryptographically random single-use nonce valid for 5 minutes.",
-        responses={200: NonceResponseSerializer},
-        auth=[],
-        tags=["auth"],
-    )
-    def get(self, request: Request) -> Response:
-        data = generate_nonce()
-        serializer = NonceResponseSerializer(data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class GoogleSignInView(APIView):
-    """E-03: Exchange Google ID token and verified nonce for a Stokari session."""
-
-    authentication_classes = []
-    permission_classes = [AllowAny]
-
-    @extend_schema(
-        summary="Exchange Google ID token for Stokari session",
-        description=(
-            "Validates Google ID token and nonce, retrieves or provisions User, "
-            "and returns an AuthSession with access token, refresh token, and offline lease."
-        ),
-        request=GoogleSignInRequestSerializer,
-        responses={
-            200: AuthSessionSerializer,
-            401: ProblemDetailSerializer,
-            403: ProblemDetailSerializer,
-            409: ProblemDetailSerializer,
-        },
-        auth=[],
-        tags=["auth"],
-    )
-    def post(self, request: Request) -> Response:
-        serializer = GoogleSignInRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        validated = serializer.validated_data
-
-        session_data = authenticate_google(
-            id_token=validated["idToken"],
-            nonce=validated["nonce"],
-            device_id=validated["deviceId"],
-            membership_id=validated.get("membershipId"),
-        )
-        return Response(session_data, status=status.HTTP_200_OK)
 
 
 class RefreshTokenView(APIView):
@@ -168,3 +109,113 @@ class LogoutView(APIView):
 
         revoke_refresh_token(validated["refreshToken"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ExchangeAuthCodeView(APIView):
+    """Bridge endpoint: Exchange django-auth-headless one-time code for Stokari AuthSession."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="Exchange OAuth handoff code for Stokari session",
+        description=(
+            "Redeems a single-use authorization code from the OAuth callback, "
+            "provisions or matches the Stokari user, and returns an AuthSession with "
+            "access JWT, refresh token, and offline lease."
+        ),
+        request=ExchangeAuthCodeRequestSerializer,
+        responses={
+            200: AuthSessionSerializer,
+            400: ProblemDetailSerializer,
+            401: ProblemDetailSerializer,
+            403: ProblemDetailSerializer,
+            409: ProblemDetailSerializer,
+        },
+        auth=[],
+        tags=["auth"],
+    )
+    def post(self, request: Request) -> Response:
+        serializer = ExchangeAuthCodeRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated = serializer.validated_data
+
+        session_data = exchange_code_for_session(
+            raw_code=validated["code"],
+            device_id=validated["deviceId"],
+            membership_id=validated.get("membershipId"),
+        )
+        return Response(session_data, status=status.HTTP_200_OK)
+
+
+class CurrentUserView(APIView):
+    """GET /api/me: Retrieve authenticated current user and tenant session details."""
+
+    authentication_classes = [StokariJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Get current user and session",
+        description="Returns identity and active tenant context for the authenticated caller.",
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "integer", "example": 200},
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {"type": "string", "format": "uuid"},
+                                    "email": {"type": "string"},
+                                    "name": {"type": "string"},
+                                },
+                            },
+                            "session": {
+                                "type": "object",
+                                "properties": {
+                                    "shopId": {"type": "string", "nullable": True},
+                                    "membershipId": {"type": "string", "nullable": True},
+                                    "role": {"type": "string", "nullable": True},
+                                    "deviceId": {"type": "string", "nullable": True},
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            401: ProblemDetailSerializer,
+        },
+        tags=["auth"],
+    )
+    def get(self, request: Request) -> Response:
+        user = request.user
+        return Response(
+            {
+                "status": 200,
+                "data": {
+                    "user": {
+                        "id": str(user.id),
+                        "email": user.email,
+                        "name": user.name,
+                    },
+                    "session": {
+                        "shopId": (
+                            str(request.shop_id) if getattr(request, "shop_id", None) else None
+                        ),
+                        "membershipId": (
+                            str(request.membership_id)
+                            if getattr(request, "membership_id", None)
+                            else None
+                        ),
+                        "role": getattr(request, "role", None),
+                        "deviceId": (
+                            str(request.device_id) if getattr(request, "device_id", None) else None
+                        ),
+                    },
+                },
+            },
+            status=status.HTTP_200_OK,
+        )

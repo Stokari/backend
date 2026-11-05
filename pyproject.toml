@@ -6,6 +6,7 @@ dependencies = [
     "cryptography>=50.0.2",
     "dj-database-url>=3.1.2",
     "django==6.1.2",
+    "django-auth-headless>=0.1.0",
     "django-cors-headers==4.9.0",
     "django-filter==26.2",
     "djangorestframework==3.18.3",
@@ -37,9 +38,10 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-django_settings_module = "config.settings"
+DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = ["common", "apps", "config"]
 
 
 [tool.uv.sources]
 backend = { path = ".", editable = true }
+django-auth-headless = { path = "/home/abelmekonen/Desktop/Projects/django-auth-headless", editable = true }
